@@ -30,6 +30,7 @@ EXTRACTOR_LABELS_DICT = {
     "uni2h": "UNI2-h",
     "virchow": "Virchow",
     "virchow2": "Virchow2",
+    "genbio_pathfm": "GenBio-PathFM",
 }
 EXTRACTOR_PARAMETERS_DICT = {
     "conch": 86_000_000,
@@ -49,6 +50,7 @@ EXTRACTOR_PARAMETERS_DICT = {
     "uni2h": 681_000_000,
     "virchow": 632_000_000,
     "virchow2": 632_000_000,
+    "genbio_pathfm": 1_100_000_000,
 }
 
 

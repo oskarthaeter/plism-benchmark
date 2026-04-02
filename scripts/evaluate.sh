@@ -13,6 +13,7 @@ extractors=(
     kaiko_vit_large_14
     plip
     conch
+    genbio_pathfm
 )
 
 # List of number of tiles to compute metrics on: the reference for leaderboard is 8,139 !
