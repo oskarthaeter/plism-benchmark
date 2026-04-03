@@ -15,7 +15,7 @@ from plismbench.models.meta import Dinov2ViTGiant
 from plismbench.models.microsoft import ProvGigaPath
 from plismbench.models.owkin import Phikon, PhikonV2
 from plismbench.models.paige_ai import Virchow, Virchow2
-from plismbench.models.genbio_ai import GenBio_PathFM
+from plismbench.models.genbio_ai import GenBioPathFM
 from plismbench.models.standford import PLIP
 
 
@@ -129,7 +129,7 @@ class FeatureExtractorsEnum(StringEnum):
                 **kwargs,
             )
         elif self is self.GENBIO_PATHFM:
-            return GenBio_PathFM(
+            return GenBioPathFM(
                 device=device,
                 mixed_precision=mixed_precision,
                 **kwargs,

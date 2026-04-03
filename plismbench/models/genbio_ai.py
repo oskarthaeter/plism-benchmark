@@ -13,7 +13,7 @@ from plismbench.models.extractor import Extractor
 from plismbench.models.utils import DEFAULT_DEVICE, prepare_module
 
 
-class GenBio_PathFM(Extractor):
+class GenBioPathFM(Extractor):
     """GenBio_PathFM model developped by GenBio AI available on Hugging-Face (1).
 
     .. note::
@@ -40,10 +40,10 @@ class GenBio_PathFM(Extractor):
         self.mixed_precision = mixed_precision
 
         try:
-            from genbio_pathfm.model import GenBio_PathFM_Inference
+            from genbio_pathfm.model import GenBio_PathFM_Inference as build_model
         except ImportError:
             raise ImportError(
-                "In order to use GenBio-PathFM, please run the following: 'pip install git+https://github.com/genbio-ai/genbio-pathfm.git'"
+                "In order to use GenBio-PathFM, please run the following: 'pip install git+https://github.com/genbio-ai/genbio-pathfm.git --no-deps'"
             )
         from huggingface_hub import hf_hub_download
 
@@ -52,7 +52,7 @@ class GenBio_PathFM(Extractor):
             filename="model.pth",
         )
         # Model    
-        feature_extractor = GenBio_PathFM_Inference(weights_path, device="cpu")
+        feature_extractor = build_model(weights_path, device="cpu")
 
         self.feature_extractor, self.device = prepare_module(
             feature_extractor,
