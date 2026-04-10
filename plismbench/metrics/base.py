@@ -8,7 +8,7 @@ from loguru import logger
 try:
     import cupy as cp
 except ImportError as error:
-    logger.error(
+    logger.warning(
         f"cupy is not installed. Please run `make install-cupy`.\nError: {error}."
     )
 import numpy as np

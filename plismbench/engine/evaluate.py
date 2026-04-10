@@ -4,7 +4,6 @@ import sys
 from functools import partial
 from pathlib import Path
 
-import cupy as cp
 import numpy as np
 import pandas as pd
 from loguru import logger
@@ -20,6 +19,13 @@ from plismbench.utils.evaluate import (
     load_features,
     prepare_pairs_dataframe,
 )
+
+try:
+    import cupy as cp
+except ImportError as error:
+    logger.warning(
+        f"cupy is not installed. Please run `make install-cupy`.\nError: {error}."
+    )
 
 
 # Leave those two variables as-is

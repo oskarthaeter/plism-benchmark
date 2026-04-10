@@ -42,7 +42,7 @@ def run_extract(
             overwrite=overwrite,
         )
     else:
-        assert isinstance(download_dir, str), "Download directory should be specified."
+        assert isinstance(download_dir, Path), "Download directory should be specified."
         run_extract_h5(
             feature_extractor_name=feature_extractor_name,
             batch_size=batch_size,
