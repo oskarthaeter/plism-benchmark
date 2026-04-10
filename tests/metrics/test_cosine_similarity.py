@@ -30,7 +30,7 @@ def test_cosine_similarity(matrix_a, matrix_b, expected):
 @pytest.mark.parametrize(("matrix_a", "matrix_b", "expected"), test_data)
 def test_cosine_similarity_gpu(matrix_a, matrix_b, expected):
     """Test cosine similarity metric on GPU."""
-    import cupy as cp  # Do the import here to avoid CI issues.
+    import cupy as cp  # noqa
 
     # Check first if a GPU is available
     if cp.cuda.is_available():

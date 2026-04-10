@@ -34,7 +34,7 @@ def test_topk_accuracy(matrix_a, matrix_b, k, expected):
 @pytest.mark.parametrize(("matrix_a", "matrix_b", "k", "expected"), test_data)
 def test_topk_accuracy_gpu(matrix_a, matrix_b, k, expected):
     """Test top-k accuracy metric on GPU."""
-    import cupy as cp
+    import cupy as cp  # noqa
 
     # Check first if a GPU is available
     if cp.cuda.is_available():

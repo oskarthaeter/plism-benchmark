@@ -6,6 +6,7 @@ from enum import Enum
 
 from plismbench.models.bioptimus import H0Mini, HOptimus0, HOptimus1
 from plismbench.models.extractor import Extractor
+from plismbench.models.genbio_ai import GenBioPathFM
 from plismbench.models.histai import HibouBase, HibouLarge
 from plismbench.models.hkust import GPFM
 from plismbench.models.kaiko_ai import KaikoViTBase, KaikoViTLarge, Midnight12k
@@ -15,7 +16,6 @@ from plismbench.models.meta import Dinov2ViTGiant
 from plismbench.models.microsoft import ProvGigaPath
 from plismbench.models.owkin import Phikon, PhikonV2
 from plismbench.models.paige_ai import Virchow, Virchow2
-from plismbench.models.genbio_ai import GenBioPathFM
 from plismbench.models.standford import PLIP
 
 

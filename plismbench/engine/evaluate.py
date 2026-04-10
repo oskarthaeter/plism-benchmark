@@ -20,6 +20,7 @@ from plismbench.utils.evaluate import (
     prepare_pairs_dataframe,
 )
 
+
 try:
     import cupy as cp
 except ImportError as error:

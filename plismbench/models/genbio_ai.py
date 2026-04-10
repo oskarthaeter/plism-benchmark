@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 import numpy as np
-import timm
 import torch
+from huggingface_hub import hf_hub_download
 from torchvision import transforms
 
 from plismbench.models.extractor import Extractor
@@ -40,18 +38,19 @@ class GenBioPathFM(Extractor):
         self.mixed_precision = mixed_precision
 
         try:
-            from genbio_pathfm.model import GenBio_PathFM_Inference as build_model
-        except ImportError:
+            from genbio_pathfm.model import (  # noqa
+                GenBio_PathFM_Inference as build_model,
+            )
+        except ImportError as err:
             raise ImportError(
                 "In order to use GenBio-PathFM, please run the following: 'pip install git+https://github.com/genbio-ai/genbio-pathfm.git --no-deps'"
-            )
-        from huggingface_hub import hf_hub_download
+            ) from err
 
         weights_path = hf_hub_download(
             repo_id="genbio-ai/genbio-pathfm",
             filename="model.pth",
         )
-        # Model    
+        # Model
         feature_extractor = build_model(weights_path, device="cpu")
 
         self.feature_extractor, self.device = prepare_module(
