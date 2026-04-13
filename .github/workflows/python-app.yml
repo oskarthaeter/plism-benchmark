@@ -40,7 +40,7 @@ jobs:
 
       - name: Log in to Hugging Face
         run: |
-          python -c "from huggingface_hub import login; login(token='${{ secrets.HF_TOKEN }}', new_session=False)"
+          python -c "from huggingface_hub import login; login(token='${{ secrets.HF_TOKEN }}')"
 
       - name: Install git lfs
         run: |
