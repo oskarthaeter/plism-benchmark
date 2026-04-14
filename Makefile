@@ -42,19 +42,13 @@ config: ## Configure poetry
 lock: ## Generate a new poetry.lock file (To be done after adding new requirements to pyproject.toml)
 	poetry lock
 
-install-cupy: ## Install GPU accelerated numpy using cuda
-	conda install -c conda-forge cupy
-
-pip-install-cupy:
-	pip install cupy-cuda12x
-
 install-poetry: ## Install poetry package
 	pip install poetry==1.7.1
 
 install: clean ## Install all package and development dependencies for testing to the active Python's site-packages
 	poetry install --all-extras --with=testing,linting,docs,dev
 
-install-all: install-poetry install install-cupy ## Install poetry along with all package and development dependencies
+install-all: install-poetry install ## Install poetry along with all package and development dependencies
 
 clean: clean-build clean-pyc clean-test clean-docs ## Remove all build, test, coverage and Python artifacts
 

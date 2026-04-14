@@ -21,12 +21,6 @@ from plismbench.utils.evaluate import (
 )
 
 
-try:
-    import cupy as cp
-except ImportError as error:
-    logger.warning(
-        f"cupy is not installed. Please run `make install-cupy`.\nError: {error}."
-    )
 
 
 # Leave those two variables as-is
@@ -90,10 +84,6 @@ def compute_metrics_ab(
         matrix_b[tiles_subset_idx, 3:],
     )
 
-    if device == "gpu":
-        mempool = cp.get_default_memory_pool()
-        pinned_mempool = cp.get_default_pinned_memory_pool()
-
     # Compute cosine similarity
     cosine_metric = CosineSimilarity(device=device, use_mixed_precision=True)
     cosine_similarity = cosine_metric.compute_metric(features_a, features_b)
@@ -106,8 +96,8 @@ def compute_metrics_ab(
     )
 
     if device == "gpu":
-        mempool.free_all_blocks()
-        pinned_mempool.free_all_blocks()
+        import torch
+        torch.cuda.empty_cache()
 
     metrics_ab = [cosine_similarity, *list(top_k_accuracies)]
     write_pickle(metrics_ab, pickle_path)

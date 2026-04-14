@@ -2,15 +2,6 @@
 
 from abc import abstractmethod
 
-from loguru import logger
-
-
-try:
-    import cupy as cp
-except ImportError as error:
-    logger.warning(
-        f"cupy is not installed. Please run `make install-cupy`.\nError: {error}."
-    )
 import numpy as np
 
 
@@ -25,7 +16,7 @@ class BasePlismMetric:
 
     def __init__(self, device: str, use_mixed_precision: bool = True):
         self.device = device
-        self.ncp = cp if device == "gpu" else np
+        self.ncp = np
         self.use_mixed_precision = use_mixed_precision
 
     @abstractmethod

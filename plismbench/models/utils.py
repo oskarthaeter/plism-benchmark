@@ -103,6 +103,8 @@ def prepare_module(
     module.to(device_)
     module.eval()
     module.requires_grad_(False)
+    if torch.cuda.is_available():
+        module.compile()
 
     return module, device_
 

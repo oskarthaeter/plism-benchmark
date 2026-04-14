@@ -25,70 +25,73 @@ class TopkAccuracy(BasePlismMetric):
             )
 
         matrix_ab = np.concatenate([matrix_a, matrix_b], axis=0)
-
         n_tiles = matrix_ab.shape[0] // 2
 
         if self.use_mixed_precision:
             matrix_ab = matrix_ab.astype(np.float16)
 
-        matrix_ab = self.ncp.asarray(matrix_ab)  # put concatenated matrix on the gpu
-        # ``dot_product_ab`` is a block matrix of shape (2*n_tiles, 2*n_tiles)
-        # [
-        #   [<matrix_a, matrix_a>, <matrix_a, matrix_b>],
-        #   [<matrix_b, matrix_a>, <matrix_b, matrix_b>]
-        # ]
-        dot_product_ab = self.ncp.matmul(
-            matrix_ab, matrix_ab.T
-        )  # shape (2*n_tiles, 2*n_tiles)
-        norm_ab = self.ncp.linalg.norm(
-            matrix_ab, axis=1, keepdims=True
-        )  # shape (2*n_tiles, )
-        cosine_ab = dot_product_ab / (
-            norm_ab * norm_ab.T
-        )  # shape (2*n_tiles, 2*n_tiles)
-
-        # Compute top-k indices for each row of cosine_ab using argpartition.
-        # We use argpartition to efficiently find the top-k elements (excluding self-matches)
         kmax = max(self.k)
-        # ``top_kmax_indices_ab`` has shape (2*n_tiles, kmax), for instance
-        # ``top_kmax_indices_ab[i, 0]`` represents the closest tile index ``ci`` accross
-        # slide a and slide b to the tile at index ``i`` (row index), hence ``ci``
-        # is spanning between 0 and 2*n_tiles but excludes the index ``i`` of the tile
-        # itself
-        top_kmax_indices_ab = self.ncp.argpartition(
-            -cosine_ab, range(1, kmax + 1), axis=1
-        )[:, 1 : kmax + 1]
-        # Compute top-k accuracies by iterating over k values
-        top_k_accuracies = []
-        for k in self.k:
-            top_k_indices_ab = top_kmax_indices_ab[:, :k]  # shape (2*n_tiles, k)
-            top_k_indices_a = top_k_indices_ab[:n_tiles]  # shape (n_tiles, k)
-            top_k_indices_b = top_k_indices_ab[n_tiles:]  # shape (n_tiles, k)
 
-            top_k_accs = []
-            for i, top_k_indices in enumerate([top_k_indices_a, top_k_indices_b]):
-                # If ``i==0``, we look at the closest tiles of each tile of matrix a that
-                # are present in matrix b, hence ``(n_tiles, 2 * n_tiles)``. See matrix
-                # block decomposition above.
-                other_slide_indices = (
-                    self.ncp.arange(n_tiles, 2 * n_tiles)
-                    if i == 0
-                    else self.ncp.arange(0, n_tiles)
-                )
-                # We now count the number of times one of the top-k closest tiles to
-                # tile ``i`` for slide a (resp. b) is the same tile but in slide b (resp. a)
-                correct_matches = self.ncp.sum(
-                    self.ncp.any(top_k_indices == other_slide_indices[:, None], axis=1)
-                )
-                _top_k_acc = correct_matches / n_tiles
-                top_k_acc = (
-                    float(_top_k_acc.get())
-                    if self.device == "gpu"
-                    else float(_top_k_acc)
-                )
-                top_k_accs.append(top_k_acc)
+        if self.device == "gpu":
+            import torch
 
-            # Average over the two directions
-            top_k_accuracies.append(sum(top_k_accs) / 2)
+            tab = torch.from_numpy(matrix_ab).cuda()
+            dot_product_ab = torch.matmul(tab, tab.T)
+            norm_ab = torch.linalg.norm(tab.float(), dim=1, keepdim=True)
+            cosine_ab = dot_product_ab.float() / (norm_ab * norm_ab.T)
 
-        return np.array(top_k_accuracies)
+            # topk returns sorted descending; index 0 is self-match (cosine=1), skip it
+            top_kmax_indices_ab = torch.topk(cosine_ab, kmax + 1, dim=1).indices[:, 1:]
+
+            top_k_accuracies = []
+            for k in self.k:
+                top_k_indices_ab = top_kmax_indices_ab[:, :k]
+                top_k_indices_a = top_k_indices_ab[:n_tiles]
+                top_k_indices_b = top_k_indices_ab[n_tiles:]
+
+                top_k_accs = []
+                for i, top_k_indices in enumerate([top_k_indices_a, top_k_indices_b]):
+                    other_slide_indices = (
+                        torch.arange(n_tiles, 2 * n_tiles, device="cuda")
+                        if i == 0
+                        else torch.arange(0, n_tiles, device="cuda")
+                    )
+                    correct_matches = (
+                        top_k_indices == other_slide_indices.unsqueeze(1)
+                    ).any(dim=1).sum()
+                    top_k_accs.append(float(correct_matches.item()) / n_tiles)
+
+                top_k_accuracies.append(sum(top_k_accs) / 2)
+
+            return np.array(top_k_accuracies)
+        else:
+            tab = self.ncp.asarray(matrix_ab)
+            dot_product_ab = self.ncp.matmul(tab, tab.T)
+            norm_ab = self.ncp.linalg.norm(tab, axis=1, keepdims=True)
+            cosine_ab = dot_product_ab / (norm_ab * norm_ab.T)
+
+            top_kmax_indices_ab = np.argpartition(
+                -cosine_ab, range(1, kmax + 1), axis=1
+            )[:, 1 : kmax + 1]
+
+            top_k_accuracies = []
+            for k in self.k:
+                top_k_indices_ab = top_kmax_indices_ab[:, :k]
+                top_k_indices_a = top_k_indices_ab[:n_tiles]
+                top_k_indices_b = top_k_indices_ab[n_tiles:]
+
+                top_k_accs = []
+                for i, top_k_indices in enumerate([top_k_indices_a, top_k_indices_b]):
+                    other_slide_indices = (
+                        self.ncp.arange(n_tiles, 2 * n_tiles)
+                        if i == 0
+                        else self.ncp.arange(0, n_tiles)
+                    )
+                    correct_matches = self.ncp.sum(
+                        self.ncp.any(top_k_indices == other_slide_indices[:, None], axis=1)
+                    )
+                    top_k_accs.append(float(correct_matches) / n_tiles)
+
+                top_k_accuracies.append(sum(top_k_accs) / 2)
+
+            return np.array(top_k_accuracies)
